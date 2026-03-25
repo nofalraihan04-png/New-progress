@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Kode RPG</title>
+    <style>
+        /* Desain Elegan & Responsif untuk HP */
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        #game-container {
+            width: 100%;
+            max-width: 400px;
+            background: #16213e;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            border: 1px solid #0f3460;
+            text-align: center;
+        }
+        .stats-bar {
+            background: #0f3460;
+            padding: 12px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-around;
+            font-weight: bold;
+            color: #4db8ff;
+            margin-bottom: 25px;
+            border: 1px solid #1a1a2e;
+        }
+        #narasi {
+            line-height: 1.7;
+            min-height: 120px;
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+            text-align: left;
+        }
+        .tombol-grup {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        button {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #e94560;
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 0 #952b3d;
+        }
+        button:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #952b3d;
+            background: #c62842;
+        }
+        .highlight { color: #f9d342; font-weight: bold; }
+        .danger { color: #ff4d4d; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="stats-bar">
+        <span id="stat-hp">❤️ HP: 100</span>
+        <span id="stat-gold">💰 Gold: 0</span>
+    </div>
+
+    <div id="narasi">
+        </div>
+
+    <div id="tombol-grup" class="tombol-grup">
+        </div>
+</div>
+
+<script>
+    // Data Pemain
+    let player = {
+        hp: 35,
+        gold: 0
+    };
+
+    const narasiEl = document.getElementById('narasi');
+    const hpEl = document.getElementById('stat-hp');
+    const goldEl = document.getElementById('stat-gold');
+    const tombolContainer = document.getElementById('tombol-grup');
+
+    // Link Tujuan Akhir
+    const linkTamat = "https://share.google/uUAhvKiGNE5dyfEWY";
+
+    function perbaruiTampilan(teks, daftarPilihan) {
+        narasiEl.innerHTML = teks;
+        hpEl.innerText = `❤️ HP: ${player.hp}`;
+        goldEl.innerText = `💰 Gold: ${player.gold}`;
+        
+        tombolContainer.innerHTML = "";
+
+        if (player.hp > 0) {
+            daftarPilihan.forEach(p => {
+                const btn = document.createElement('button');
+                btn.innerText = p.teks;
+                btn.onclick = p.aksi;
+                tombolContainer.appendChild(btn);
+            });
+        } else {
+            // Jika Kalah
+            narasiEl.innerHTML += "<br><br><span class='danger'>Kamu terlalu lelah untuk melanjutkan...</span>";
+            const btnReset = document.createElement('button');
+            btnReset.innerText = "Coba Lagi dari Awal";
+            btnReset.onclick = () => location.reload();
+            tombolContainer.appendChild(btnReset);
+        }
+    }
+
+    // --- ALUR CERITA ---
+
+    function start() {
+        perbaruiTampilan(
+            "Kamu berdiri di depan gerbang kayu raksasa. Angin berhembus dingin. Di dalam sana, konon tersimpan harta karun yang luar biasa.", 
+            [
+                { teks: "Masuk Lewat Gerbang", aksi: aulaKastil },
+                { teks: "Cari Celah di Dinding", aksi: celahDinding }
+            ]
+        );
+    }
+
+    function aulaKastil() {
+        perbaruiTampilan(
+            "Di tengah aula, ada peti kayu tua. Tiba-tiba, sesosok bayangan hitam muncul menghalangimu!", 
+            [
+                { teks: "Lawan Bayangan", aksi: pertarungan },
+                { teks: "Lari Keluar", aksi: start }
+            ]
+        );
+    }
+
+    function celahDinding() {
+        // Keberuntungan acak
+        if (Math.random() > 0.4) {
+            player.gold += 30;
+            perbaruiTampilan(
+                "Kamu menemukan <span class='highlight'>30 Gold</span> terselip di reruntuhan dinding! Kamu pun kembali ke gerbang utama.", 
+                [{ teks: "Lanjut", aksi: start }]
+            );
+        } else {
+            player.hp -= 20;
+            perbaruiTampilan(
+                "Aduh! Dindingnya runtuh dan menimpa kakimu. <span class='danger'>(-20 HP)</span>", 
+                [{ teks: "Pincang Kembali", aksi: start }]
+            );
+        }
+    }
+
+    function pertarungan() {
+        // Logika menang kalah
+        let menang = Math.random() > 0.4; // 60% peluang menang
+
+        if (menang) {
+            player.gold += 100;
+            perbaruiTampilan(
+                "Luar biasa! Dengan sekali tebas, bayangan itu lenyap. Di dalam peti, kamu menemukan kunci emas dan <span class='highlight'>100 Gold</span>.", 
+                [
+                    { teks: "Buka Pintu Rahasia (TAMAT)", aksi: tamatGame },
+                    { teks: "Kembali ke Gerbang", aksi: start }
+                ]
+            );
+        } else {
+            player.hp -= 40;
+            perbaruiTampilan(
+                "Bayangan itu terlalu cepat! Kamu terkena serangan telak. <span class='danger'>(-40 HP)</span>", 
+                [
+                    { teks: "Serang Lagi!", aksi: pertarungan },
+                    { teks: "Lari!", aksi: start }
+                ]
+            );
+        }
+    }
+
+    function tamatGame() {
+        alert("Selamat! Kamu berhasil menuntaskan petualangan ini.");
+        // Pindah ke link yang kamu minta
+        window.location.href = linkTamat;
+    }
+
+    // Jalankan Game
+    start();
+</script>
+
+</body>
+</html>
